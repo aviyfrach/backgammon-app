@@ -1,1 +1,1201 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>שש בש - חברים</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎲%3C/text%3E%3C/svg%3E" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
+    :root {
+      --bg: #0a0a0f;
+      --bg-elev: #14141c;
+      --bg-card: #1c1c28;
+      --border: #2a2a3a;
+      --text: #f0f0f5;
+      --text-dim: #8a8a9a;
+      --accent: #c9a961;
+      --accent-dim: #a08a4a;
+      --success: #4ade80;
+      --danger: #f87171;
+      --warning: #fbbf24;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Heebo", "Assistant", sans-serif;
+      font-size: 16px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #app {
+      max-width: 600px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Login screen */
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 80px;
+      margin-bottom: 24px;
+    }
+
+    .login-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .login-subtitle {
+      font-size: 15px;
+      color: var(--text-dim);
+      margin-bottom: 48px;
+    }
+
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: var(--text);
+      color: #1a1a1a;
+      padding: 14px 32px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      font-family: inherit;
+    }
+
+    .btn-google:active {
+      transform: scale(0.97);
+    }
+
+    .btn-google svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Header */
+    .header {
+      padding: 24px 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .header-title .emoji {
+      margin-left: 8px;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--accent);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 16px 20px 0;
+      background: var(--bg);
+      position: sticky;
+      top: 73px;
+      z-index: 9;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      position: relative;
+    }
+
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab .badge {
+      display: inline-block;
+      background: var(--danger);
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    /* Content */
+    .content {
+      padding: 20px;
+    }
+
+    /* Leaderboard */
+    .leaderboard {
+      background: var(--bg-card);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .leaderboard-header {
+      padding: 12px 16px;
+      background: var(--bg-elev);
+      font-size: 12px;
+      color: var(--text-dim);
+      display: grid;
+      grid-template-columns: 30px 1fr 60px 50px 60px;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .leaderboard-row {
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 30px 1fr 60px 50px 60px;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .leaderboard-row:last-child {
+      border-bottom: none;
+    }
+
+    .rank {
+      font-weight: 700;
+      color: var(--text-dim);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .rank-1 { color: #fbbf24; }
+    .rank-2 { color: #d1d5db; }
+    .rank-3 { color: #d97706; }
+
+    .player-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .player-info .avatar {
+      width: 28px;
+      height: 28px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .player-name {
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .player-name.me {
+      color: var(--accent);
+    }
+
+    .stat-points {
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    .stat-games {
+      color: var(--text-dim);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .stat-winrate {
+      color: var(--success);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Empty states */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+
+    .empty .emoji {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-text {
+      font-size: 14px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .select-wrap {
+      position: relative;
+    }
+
+    .form-select, .form-input {
+      width: 100%;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .form-select {
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8a9a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 12px center;
+      background-size: 16px;
+      padding-left: 36px;
+    }
+
+    .form-select:focus, .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Radio group */
+    .radio-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .radio-option {
+      position: relative;
+    }
+
+    .radio-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      gap: 6px;
+    }
+
+    .radio-option input:checked + .radio-label {
+      background: rgba(201, 169, 97, 0.1);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.1s ease, opacity 0.15s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--bg-elev);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .btn-small {
+      padding: 8px 14px;
+      font-size: 13px;
+      width: auto;
+    }
+
+    /* Match items */
+    .match-item {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .match-item.pending {
+      border-color: var(--warning);
+      background: rgba(251, 191, 36, 0.05);
+    }
+
+    .match-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .match-players {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .match-vs {
+      color: var(--text-dim);
+      margin: 0 6px;
+    }
+
+    .match-result {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .match-mars {
+      display: inline-block;
+      background: var(--accent);
+      color: #0a0a0f;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 6px;
+    }
+
+    .match-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .match-actions .btn {
+      flex: 1;
+    }
+
+    /* Player list */
+    .player-row-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .player-row-card.me {
+      border-color: var(--accent);
+    }
+
+    .player-row-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .remove-btn {
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-elev);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      z-index: 100;
+      animation: toastIn 0.25s ease;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 360px;
+      width: 100%;
+      border: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .modal-text {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="loading">
+      <span>טוען</span>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    // ============ CONFIG ============
+    const SUPABASE_URL = 'https://rjjaxjijvlwlqaywmxpq.supabase.co';
+    const SUPABASE_KEY = 'YOUR_PUBLISHABLE_KEY_HERE';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ============ STATE ============
+    let state = {
+      user: null,
+      profile: null,
+      players: [],
+      matches: [],
+      activeTab: 'leaderboard',
+      modal: null
+    };
+
+    // ============ HELPERS ============
+    function $(id) { return document.getElementById(id); }
+
+    function toast(msg, type = '') {
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2800);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function getInitials(name) {
+      if (!name) return '?';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+      return name.substring(0, 2).toUpperCase();
+    }
+
+    function renderAvatar(player, size = 28) {
+      if (player && player.avatar_url) {
+        return `<div class="avatar" style="width:${size}px;height:${size}px">
+          <img src="${escapeHtml(player.avatar_url)}" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='${getInitials(player.name)}'" />
+        </div>`;
+      }
+      return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${size * 0.4}px">${getInitials(player ? player.name : '?')}</div>`;
+    }
+
+    // ============ STATS ============
+    function calcStats(playerId) {
+      const confirmed = state.matches.filter(m => m.confirmed);
+      const games = confirmed.filter(m => m.player1_id === playerId || m.player2_id === playerId);
+      const wins = games.filter(m => m.winner_id === playerId);
+      const marsWins = wins.filter(m => m.is_mars);
+      const regularWins = wins.length - marsWins.length;
+      const points = regularWins * 1 + marsWins.length * 2;
+      const winRate = games.length > 0 ? Math.round((wins.length / games.length) * 100) : 0;
+      return { points, games: games.length, wins: wins.length, winRate };
+    }
+
+    // ============ AUTH ============
+    async function signInWithGoogle() {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) toast('שגיאה בהתחברות: ' + error.message, 'error');
+    }
+
+    async function signOut() {
+      await supabase.auth.signOut();
+      state = { user: null, profile: null, players: [], matches: [], activeTab: 'leaderboard', modal: null };
+      render();
+    }
+
+    // ============ DATA ============
+    async function loadData() {
+      const [playersRes, matchesRes] = await Promise.all([
+        supabase.from('players').select('*').order('name'),
+        supabase.from('matches').select('*').order('created_at', { ascending: false })
+      ]);
+
+      if (playersRes.error) {
+        toast('שגיאה בטעינת שחקנים', 'error');
+        console.error(playersRes.error);
+      } else {
+        state.players = playersRes.data || [];
+      }
+
+      if (matchesRes.error) {
+        toast('שגיאה בטעינת משחקים', 'error');
+        console.error(matchesRes.error);
+      } else {
+        state.matches = matchesRes.data || [];
+      }
+
+      state.profile = state.players.find(p => p.id === state.user.id);
+    }
+
+    async function reportMatch() {
+      const opponentId = $('opponent-select').value;
+      const winnerVal = document.querySelector('input[name="winner"]:checked');
+      const isMars = $('mars-check').checked;
+
+      if (!opponentId) {
+        toast('בחר יריב', 'error');
+        return;
+      }
+      if (!winnerVal) {
+        toast('בחר מי ניצח', 'error');
+        return;
+      }
+
+      const winnerId = winnerVal.value === 'me' ? state.user.id : opponentId;
+
+      const { error } = await supabase.from('matches').insert({
+        player1_id: state.user.id,
+        player2_id: opponentId,
+        winner_id: winnerId,
+        is_mars: isMars,
+        reported_by: state.user.id,
+        confirmed: false
+      });
+
+      if (error) {
+        toast('שגיאה בדיווח: ' + error.message, 'error');
+        return;
+      }
+
+      toast('המשחק דווח! ממתין לאישור היריב', 'success');
+      await loadData();
+      state.activeTab = 'leaderboard';
+      render();
+    }
+
+    async function confirmMatch(matchId) {
+      const { error } = await supabase
+        .from('matches')
+        .update({ confirmed: true, confirmed_at: new Date().toISOString() })
+        .eq('id', matchId);
+
+      if (error) {
+        toast('שגיאה באישור: ' + error.message, 'error');
+        return;
+      }
+
+      toast('המשחק אושר!', 'success');
+      await loadData();
+      render();
+    }
+
+    async function rejectMatch(matchId) {
+      const { error } = await supabase.from('matches').delete().eq('id', matchId);
+      if (error) {
+        toast('שגיאה: ' + error.message, 'error');
+        return;
+      }
+      toast('המשחק נדחה', 'success');
+      await loadData();
+      render();
+    }
+
+    async function deleteMyMatch(matchId) {
+      const { error } = await supabase.from('matches').delete().eq('id', matchId);
+      if (error) {
+        toast('שגיאה: ' + error.message, 'error');
+        return;
+      }
+      toast('הדיווח בוטל', 'success');
+      await loadData();
+      render();
+    }
+
+    async function removeMyself() {
+      if (!confirm('האם להסיר את עצמך מהאפליקציה? כל המשחקים שלך יימחקו.')) return;
+
+      const { error } = await supabase.from('players').delete().eq('id', state.user.id);
+      if (error) {
+        toast('שגיאה: ' + error.message, 'error');
+        return;
+      }
+      toast('הוסרת מהאפליקציה', 'success');
+      await signOut();
+    }
+
+    async function removePlayer(playerId, playerName) {
+      if (!confirm(`להסיר את ${playerName} מהאפליקציה? פעולה זו דורשת שהמשתמש יסכים בעצמו - אבל אפשר לבקש ממנו להסיר את עצמו.`)) return;
+      toast('רק המשתמש בעצמו יכול להסיר את עצמו', 'error');
+    }
+
+    // ============ RENDER ============
+    function render() {
+      const app = $('app');
+
+      if (!state.user) {
+        app.innerHTML = `
+          <div class="login-screen">
+            <div class="logo">🎲</div>
+            <div class="login-title">שש בש</div>
+            <div class="login-subtitle">מעקב משחקים עם החברים</div>
+            <button class="btn-google" onclick="signInWithGoogle()">
+              <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              <span>התחברות עם Google</span>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const myPendingMatches = state.matches.filter(m =>
+        !m.confirmed &&
+        (m.player1_id === state.user.id || m.player2_id === state.user.id) &&
+        m.reported_by !== state.user.id
+      );
+
+      app.innerHTML = `
+        <div class="header">
+          <div class="header-title"><span class="emoji">🎲</span>שש בש</div>
+          <div class="header-user">
+            ${renderAvatar(state.profile, 32)}
+            <button class="logout-btn" onclick="signOut()">יציאה</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab ${state.activeTab === 'leaderboard' ? 'active' : ''}" onclick="switchTab('leaderboard')">דירוג</button>
+          <button class="tab ${state.activeTab === 'report' ? 'active' : ''}" onclick="switchTab('report')">דיווח</button>
+          <button class="tab ${state.activeTab === 'matches' ? 'active' : ''}" onclick="switchTab('matches')">
+            משחקים${myPendingMatches.length > 0 ? `<span class="badge">${myPendingMatches.length}</span>` : ''}
+          </button>
+          <button class="tab ${state.activeTab === 'players' ? 'active' : ''}" onclick="switchTab('players')">שחקנים</button>
+        </div>
+
+        <div class="content" id="tab-content"></div>
+      `;
+
+      renderTab();
+    }
+
+    function renderTab() {
+      const c = $('tab-content');
+      if (!c) return;
+
+      if (state.activeTab === 'leaderboard') renderLeaderboard(c);
+      else if (state.activeTab === 'report') renderReport(c);
+      else if (state.activeTab === 'matches') renderMatches(c);
+      else if (state.activeTab === 'players') renderPlayers(c);
+    }
+
+    function renderLeaderboard(c) {
+      const rows = state.players.map(p => ({
+        ...p,
+        ...calcStats(p.id)
+      })).sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+        return b.games - a.games;
+      });
+
+      if (rows.length === 0) {
+        c.innerHTML = `<div class="empty"><div class="emoji">🎲</div><div class="empty-text">אין עדיין שחקנים</div></div>`;
+        return;
+      }
+
+      c.innerHTML = `
+        <div class="leaderboard">
+          <div class="leaderboard-header">
+            <div>#</div>
+            <div>שחקן</div>
+            <div style="text-align:center">נקודות</div>
+            <div style="text-align:center">משחקים</div>
+            <div style="text-align:center">אחוז</div>
+          </div>
+          ${rows.map((p, i) => `
+            <div class="leaderboard-row">
+              <div class="rank rank-${i + 1}">${i + 1}</div>
+              <div class="player-info">
+                ${renderAvatar(p, 28)}
+                <div class="player-name ${p.id === state.user.id ? 'me' : ''}">${escapeHtml(p.name)}</div>
+              </div>
+              <div class="stat-points">${p.points}</div>
+              <div class="stat-games">${p.games}</div>
+              <div class="stat-winrate">${p.games > 0 ? p.winRate + '%' : '-'}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:16px;padding:14px;background:var(--bg-card);border-radius:12px;border:1px solid var(--border);font-size:12px;color:var(--text-dim);line-height:1.6">
+          <div>📊 <strong style="color:var(--accent)">ניקוד:</strong></div>
+          <div>• ניצחון רגיל = 1 נקודה</div>
+          <div>• ניצחון מרס = 2 נקודות</div>
+          <div>• הפסד = 0 נקודות</div>
+        </div>
+      `;
+    }
+
+    function renderReport(c) {
+      const opponents = state.players.filter(p => p.id !== state.user.id);
+
+      if (opponents.length === 0) {
+        c.innerHTML = `
+          <div class="empty">
+            <div class="emoji">👥</div>
+            <div class="empty-text">אין עדיין שחקנים אחרים<br/>שלח את הקישור לחברים כדי שיתחברו</div>
+          </div>
+        `;
+        return;
+      }
+
+      c.innerHTML = `
+        <div class="card">
+          <div class="card-title">דיווח משחק חדש</div>
+
+          <div class="form-group">
+            <label class="form-label">נגד מי שיחקת?</label>
+            <div class="select-wrap">
+              <select id="opponent-select" class="form-select">
+                <option value="">בחר יריב...</option>
+                ${opponents.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">מי ניצח?</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" name="winner" id="winner-me" value="me" />
+                <label for="winner-me" class="radio-label">🏆 אני ניצחתי</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" name="winner" id="winner-opp" value="opp" />
+                <label for="winner-opp" class="radio-label">😔 הוא ניצח</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="radio-label" style="cursor:pointer" for="mars-check">
+              <input type="checkbox" id="mars-check" style="margin-left:8px;width:18px;height:18px;accent-color:var(--accent)" />
+              <span>מרס (ניצחון כפול - 2 נקודות)</span>
+            </label>
+          </div>
+
+          <button class="btn" onclick="reportMatch()">שלח לאישור היריב</button>
+
+          <div style="margin-top:14px;font-size:12px;color:var(--text-dim);text-align:center">
+            המשחק יספור רק אחרי שהיריב יאשר
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMatches(c) {
+      const myPending = state.matches.filter(m =>
+        !m.confirmed &&
+        (m.player1_id === state.user.id || m.player2_id === state.user.id) &&
+        m.reported_by !== state.user.id
+      );
+
+      const myReported = state.matches.filter(m =>
+        !m.confirmed && m.reported_by === state.user.id
+      );
+
+      const confirmed = state.matches.filter(m =>
+        m.confirmed &&
+        (m.player1_id === state.user.id || m.player2_id === state.user.id)
+      ).slice(0, 20);
+
+      const getPlayer = (id) => state.players.find(p => p.id === id);
+
+      let html = '';
+
+      if (myPending.length > 0) {
+        html += `<div class="card-title" style="margin-bottom:10px">⏳ ממתינים לאישור שלך</div>`;
+        html += myPending.map(m => {
+          const reporter = getPlayer(m.reported_by);
+          const opponent = m.player1_id === state.user.id ? getPlayer(m.player2_id) : getPlayer(m.player1_id);
+          const iWon = m.winner_id === state.user.id;
+          return `
+            <div class="match-item pending">
+              <div class="match-row">
+                <div class="match-players">
+                  <strong>${escapeHtml(reporter ? reporter.name : '?')}</strong> דיווח:
+                  <div class="match-result" style="margin-top:6px">
+                    ${m.is_mars ? '<span class="match-mars">מרס</span>' : ''}
+                    ${iWon ? '✅ ניצחת' : '❌ הפסדת'} מול ${escapeHtml(opponent ? opponent.name : '?')}
+                  </div>
+                </div>
+              </div>
+              <div class="match-actions">
+                <button class="btn btn-small" onclick="confirmMatch('${m.id}')">אשר</button>
+                <button class="btn btn-small btn-danger" onclick="rejectMatch('${m.id}')">דחה</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (myReported.length > 0) {
+        html += `<div class="card-title" style="margin:20px 0 10px">📤 דיווחים שלך - ממתינים</div>`;
+        html += myReported.map(m => {
+          const opponent = m.player1_id === state.user.id ? getPlayer(m.player2_id) : getPlayer(m.player1_id);
+          const iWon = m.winner_id === state.user.id;
+          return `
+            <div class="match-item pending">
+              <div class="match-row">
+                <div class="match-players">
+                  ${m.is_mars ? '<span class="match-mars">מרס</span>' : ''}
+                  ${iWon ? '✅ ניצחת' : '❌ הפסדת'} מול <strong>${escapeHtml(opponent ? opponent.name : '?')}</strong>
+                  <div class="match-result" style="margin-top:4px">ממתין לאישור</div>
+                </div>
+              </div>
+              <div class="match-actions">
+                <button class="btn btn-small btn-danger" onclick="deleteMyMatch('${m.id}')">בטל דיווח</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (confirmed.length > 0) {
+        html += `<div class="card-title" style="margin:20px 0 10px">✅ משחקים מאושרים</div>`;
+        html += confirmed.map(m => {
+          const opponent = m.player1_id === state.user.id ? getPlayer(m.player2_id) : getPlayer(m.player1_id);
+          const iWon = m.winner_id === state.user.id;
+          const date = new Date(m.confirmed_at || m.created_at).toLocaleDateString('he-IL');
+          return `
+            <div class="match-item">
+              <div class="match-row">
+                <div class="match-players">
+                  ${m.is_mars ? '<span class="match-mars">מרס</span>' : ''}
+                  ${iWon ? '✅ ניצחת' : '❌ הפסדת'} מול <strong>${escapeHtml(opponent ? opponent.name : '?')}</strong>
+                  <div class="match-result">${date}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (!html) {
+        html = `<div class="empty"><div class="emoji">📋</div><div class="empty-text">אין עדיין משחקים</div></div>`;
+      }
+
+      c.innerHTML = html;
+    }
+
+    function renderPlayers(c) {
+      c.innerHTML = `
+        <div class="card-title" style="margin-bottom:10px">👥 שחקנים באפליקציה (${state.players.length})</div>
+        ${state.players.map(p => `
+          <div class="player-row-card ${p.id === state.user.id ? 'me' : ''}">
+            <div class="player-row-left">
+              ${renderAvatar(p, 36)}
+              <div>
+                <div class="player-name ${p.id === state.user.id ? 'me' : ''}">${escapeHtml(p.name)}${p.id === state.user.id ? ' (אני)' : ''}</div>
+                <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${escapeHtml(p.email || '')}</div>
+              </div>
+            </div>
+            ${p.id === state.user.id ? `<button class="remove-btn" onclick="removeMyself()">הסר אותי</button>` : ''}
+          </div>
+        `).join('')}
+
+        <div style="margin-top:20px;padding:14px;background:var(--bg-card);border-radius:12px;border:1px solid var(--border);font-size:13px;color:var(--text-dim);line-height:1.6">
+          <div style="color:var(--accent);font-weight:600;margin-bottom:6px">איך מוסיפים שחקנים?</div>
+          שתף את כתובת האפליקציה עם החברים שלך - הם פשוט יתחברו עם חשבון Google שלהם ויתווספו אוטומטית לרשימה.
+        </div>
+
+        <div style="margin-top:14px">
+          <button class="btn btn-secondary" onclick="shareApp()">📤 שתף את האפליקציה</button>
+        </div>
+      `;
+    }
+
+    function switchTab(tab) {
+      state.activeTab = tab;
+      render();
+    }
+
+    async function shareApp() {
+      const url = window.location.href;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'שש בש - חברים',
+            text: 'בוא תשחק איתנו שש בש!',
+            url
+          });
+        } catch (e) {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(url);
+          toast('הקישור הועתק!', 'success');
+        } catch (e) {
+          toast(url);
+        }
+      }
+    }
+
+    // Expose to window
+    window.signInWithGoogle = signInWithGoogle;
+    window.signOut = signOut;
+    window.switchTab = switchTab;
+    window.reportMatch = reportMatch;
+    window.confirmMatch = confirmMatch;
+    window.rejectMatch = rejectMatch;
+    window.deleteMyMatch = deleteMyMatch;
+    window.removeMyself = removeMyself;
+    window.removePlayer = removePlayer;
+    window.shareApp = shareApp;
+
+    // ============ INIT ============
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        state.user = session.user;
+        await loadData();
+      }
+      render();
+
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          state.user = session.user;
+          await loadData();
+          render();
+        } else if (event === 'SIGNED_OUT') {
+          state.user = null;
+          state.profile = null;
+          render();
+        }
+      });
+
+      // Realtime updates
+      supabase.channel('public:matches')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, async () => {
+          if (state.user) {
+            await loadData();
+            render();
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, async () => {
+          if (state.user) {
+            await loadData();
+            render();
+          }
+        })
+        .subscribe();
+    }
+
+    init();
+  </script>
+</body>
+</html>
